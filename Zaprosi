@@ -1,0 +1,31 @@
+Выборка всех пользователей с ролями:
+SELECT 
+    u.UserID, 
+    u.Name, 
+    u.LastName, 
+    u.Login, 
+    r.Title AS Role
+FROM 
+    dbo.Users u
+INNER JOIN 
+    dbo.Roles r ON u.RoleID = r.RoleID;
+
+Подсчет количества заявок для каждого статуса:
+SELECT 
+    s.Title AS Status, 
+    COUNT(a.ApplicationID) AS ApplicationCount
+FROM 
+    dbo.Status s
+LEFT JOIN 
+    dbo.Applications a ON s.StatusID = a.StatusID
+GROUP BY 
+    s.Title;
+
+Выборка всех статусов:
+SELECT 
+    StatusID, 
+    Title 
+FROM 
+    dbo.Status;
+
+
