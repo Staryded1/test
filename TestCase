@@ -1,0 +1,135 @@
+using NUnit.Framework;
+using Moq;
+using System.Linq;
+using System.Collections.Generic;
+using System.Windows;
+
+namespace YourNamespace.Tests
+{
+    [TestFixture]
+    public class AuthTests
+    {
+        private Mock<YourDbContext> mockDbContext;
+        private Mock<DbSet<User>> mockUserSet;
+        private Mock<DbSet<Role>> mockRoleSet;
+
+        [SetUp]
+        public void Setup()
+        {
+            mockDbContext = new Mock<YourDbContext>();
+
+            var users = new List<User>
+            {
+                new User { Login = "user", Password = "password", RoleID = 1 },
+                new User { Login = "admin", Password = "adminpassword", RoleID = 2 },
+                new User { Login = "master", Password = "masterpassword", RoleID = 3 }
+            }.AsQueryable();
+
+            mockUserSet = new Mock<DbSet<User>>();
+            mockUserSet.As<IQueryable<User>>().Setup(m => m.Provider).Returns(users.Provider);
+            mockUserSet.As<IQueryable<User>>().Setup(m => m.Expression).Returns(users.Expression);
+            mockUserSet.As<IQueryable<User>>().Setup(m => m.ElementType).Returns(users.ElementType);
+            mockUserSet.As<IQueryable<User>>().Setup(m => m.GetEnumerator()).Returns(users.GetEnumerator());
+
+            var roles = new List<Role>
+            {
+                new Role { RoleID = 1, Title = "Пользователь" },
+                new Role { RoleID = 2, Title = "Администратор" },
+                new Role { RoleID = 3, Title = "Мастер" }
+            }.AsQueryable();
+
+            mockRoleSet = new Mock<DbSet<Role>>();
+            mockRoleSet.As<IQueryable<Role>>().Setup(m => m.Provider).Returns(roles.Provider);
+            mockRoleSet.As<IQueryable<Role>>().Setup(m => m.Expression).Returns(roles.Expression);
+            mockRoleSet.As<IQueryable<Role>>().Setup(m => m.ElementType).Returns(roles.ElementType);
+            mockRoleSet.As<IQueryable<Role>>().Setup(m => m.GetEnumerator()).Returns(roles.GetEnumerator());
+
+            mockDbContext.Setup(c => c.Users).Returns(mockUserSet.Object);
+            mockDbContext.Setup(c => c.Roles).Returns(mockRoleSet.Object);
+        }
+
+        [Test]
+        public void TestEmptyFields()
+        {
+            var authWindow = new YourAuthWindow();
+            authWindow.tbLogin.Text = "";
+            authWindow.tbPassword.Text = "";
+            authWindow.btnAuth_Click(null, null);
+
+            Assert.AreEqual("Нужно заполнить все поля", MessageBox.Show.Message);
+        }
+
+        [Test]
+        public void TestInvalidCredentials()
+        {
+            var authWindow = new YourAuthWindow();
+            authWindow.tbLogin.Text = "invalid";
+            authWindow.tbPassword.Text = "invalidpassword";
+            authWindow.btnAuth_Click(null, null);
+
+            Assert.AreEqual("Неверные учетные данные", MessageBox.Show.Message);
+        }
+
+        [Test]
+        public void TestValidUserCredentials()
+        {
+            var authWindow = new YourAuthWindow();
+            authWindow.tbLogin.Text = "user";
+            authWindow.tbPassword.Text = "password";
+            authWindow.btnAuth_Click(null, null);
+
+            // Check if WindowClientProfile is shown
+        }
+
+        [Test]
+        public void TestValidAdminCredentials()
+        {
+            var authWindow = new YourAuthWindow();
+            authWindow.tbLogin.Text = "admin";
+            authWindow.tbPassword.Text = "adminpassword";
+            authWindow.btnAuth_Click(null, null);
+
+            // Check if WindowCheckRole is shown with "Администратор"
+        }
+
+        [Test]
+        public void TestValidMasterCredentials()
+        {
+            var authWindow = new YourAuthWindow();
+            authWindow.tbLogin.Text = "master";
+            authWindow.tbPassword.Text = "masterpassword";
+            authWindow.btnAuth_Click(null, null);
+
+            // Check if WindowCheckRole is shown with "Мастер"
+        }
+    }
+}
+
+
+
+Тест кейс	Описание	Предусловия	Шаги	Ожидаемый результат
+1. Empty Fields Test Case	
+Проверка обработки пустых полей логина и пароля.	
+tbLogin.Text и tbPassword.Text пустые
+1. Установить tbLogin.Text в пустую строку.<br>2. Установить tbPassword.Text в пустую строку.<br>3. Вызвать btnAuth_Click.	
+Показ сообщения "Нужно заполнить все поля".
+2. Invalid Credentials Test Case	
+Проверка обработки неверных учетных данных.	
+tbLogin.Text установлено в "invalid", tbPassword.Text установлено в "invalidpassword".
+1. Установить tbLogin.Text в "invalid".<br>2. Установить tbPassword.Text в "invalidpassword".<br>3. Вызвать btnAuth_Click.	
+Показ сообщения "Неверные учетные данные".
+3. Valid User Credentials Test Case
+Проверка обработки правильных учетных данных для пользователя.	
+tbLogin.Text установлено в "user", tbPassword.Text установлено в "password".	
+1. Установить tbLogin.Text в "user".<br>2. Установить tbPassword.Text в "password".<br>3. Вызвать btnAuth_Click.	
+Открытие окна WindowClientProfile.
+4. Valid Admin Credentials Test Case	
+Проверка обработки правильных учетных данных для администратора.	
+tbLogin.Text установлено в "admin", tbPassword.Text установлено в "adminpassword".	
+1. Установить tbLogin.Text в "admin".<br>2. Установить tbPassword.Text в "adminpassword".<br>3. Вызвать btnAuth_Click.	
+Открытие окна WindowCheckRole с ролью "Администратор".
+5. Valid Master Credentials Test Case
+Проверка обработки правильных учетных данных для мастера.
+tbLogin.Text установлено в "master", tbPassword.Text установлено в "masterpassword".
+1. Установить tbLogin.Text в "master".<br>2. Установить tbPassword.Text в "masterpassword".<br>3. Вызвать btnAuth_Click.	
+Открытие окна WindowCheckRole с ролью "Мастер".
