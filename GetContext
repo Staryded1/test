@@ -1,0 +1,10 @@
+private static XXXXX instance;
+
+
+
+public static XXXXX GetContext()
+        {
+            if (instance == null)
+                instance = new XXXXX();
+            return instance;
+        }
